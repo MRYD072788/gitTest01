@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+
+
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:MVC="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/mvc
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+
+
+    <!--扫描包的组件注解-->
+    <context:component-scan base-package="com.wyz"></context:component-scan>
+    <!--加载MVC注解驱动-->
+    <mvc:annotation-driven/>
+    <!--配置视图解析器-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" id="viewResolver">
+        <property name="prefix" value="/WEB-INF/pages/"></property>
+        <property name="suffix" value=".jsp"></property>
+    </bean>
+    <!--让DefaultServlet去处理静态资源，DispatcherServlet就不处理静态资源了
+    解决DispatcherServlet拦截静态资源的问题
+-->
+    <mvc:default-servlet-handler/>
+
+    <!--配置文件上传解析器-->
+    <bean class="org.springframework.web.multipart.commons.CommonsMultipartResolver" id="multipartResolver">
+        <property name="maxUploadSize" value="5242880"></property>
+    </bean>
+
+    <!--加载properties文件-->
+    <context:property-placeholder location="classpath:jdbc.properties"></context:property-placeholder>
+    <!--加载AOP注解驱动-->
+    <aop:aspectj-autoproxy/>
+
+    <!--开启事务-->
+    <!--配置事务管理者并注入数据源-->
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <!--开启事务注解驱动。如果事务管理的bean的id是transactionManager，属性transaction-manager可以不写-->
+    <tx:annotation-driven/>
+
+    <!--spring整合mybatis-->
+    <!--配置hikariCP连接池数据源-->
+    <bean class="com.zaxxer.hikari.HikariDataSource" id="dataSource">
+        <property name="driverClassName" value="${jdbc.driver}"></property>
+        <property name="jdbcUrl" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+    <!--将SqlSessionFactoryBean对象IOC到Spring容器,并注入数据源-->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactory">
+        <property name="dataSource" ref="dataSource"></property>
+        <property name="typeAliasesPackage" value="com.wyz.pojo"></property>
+    </bean>
+    <!--配置扫描dao包MapperScannerConfigurer,创建dao的代理对象交由spring核心容器管理,并注入要扫描的包-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" id="mapperScannerConfigurer">
+        <property name="basePackage" value="com.wyz.dao"></property>
+    </bean>
+    <!--整合完毕-->
+
+</beans>
